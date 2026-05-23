@@ -1,0 +1,359 @@
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+
+local Window = Fluent:CreateWindow({
+    Title = "Tantado! private only " .. Fluent.Version,
+    SubTitle = "by Kyo",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Acrylic = true, -- The blur may be detectable, setting this to false disables blur entirely
+    Theme = "Darker",
+    MinimizeKey = Enum.KeyCode.LeftControl -- Used when theres no MinimizeKeybind
+})
+
+
+
+local MainTab = Window:AddTab({ Title = "Main", Icon = "home" })
+
+-- FIXED: Removed the 'local' keyword before global '_G' declaration
+_G.FarmToggle = false 
+
+MainTab:AddToggle("FarmToggle", {
+    Title = "Auto Aura",
+    Default = false,
+    Callback = function(Value)
+        _G.FarmToggle = Value
+        
+        if Value then
+            task.spawn(function()
+                -- FIXED: Added explicit safety check for the Event path
+                local events = game:GetService("ReplicatedStorage"):WaitForChild("Events", 5)
+                local farmEvent = events and events:WaitForChild("Farm", 5)
+                
+                while _G.FarmToggle do
+                    if farmEvent then
+                        farmEvent:FireServer()
+                    else
+                        warn("Farm event path not found!")
+                        break
+                    end
+                    task.wait(0.5) -- Slightly faster delay, still completely safe
+                end
+            end)
+        end
+    end
+})
+
+-- Toggle state variable
+_G.EnergyToggle = false 
+
+MainTab:AddToggle("EnergyToggle", {
+    Title = "Auto Energy",
+    Default = false,
+    Callback = function(Value)
+        _G.EnergyToggle = Value
+        
+        if Value then
+            task.spawn(function()
+                local events = game:GetService("ReplicatedStorage"):WaitForChild("Events", 5)
+                local energyEvent = events and events:WaitForChild("Energy", 5)
+                
+                while _G.EnergyToggle do
+                    if energyEvent then
+                        energyEvent:FireServer()
+                    else
+                        warn("Energy event path not found!")
+                        break
+                    end
+                    task.wait(0.5) -- Fires twice per second. Adjust if needed.
+                end
+            end)
+        end
+    end
+})
+
+-- Toggle state variable
+_G.RebirthToggle = false 
+
+MainTab:AddToggle("RebirthToggle", {
+    Title = "Auto Rebirth",
+    Default = false,
+    Callback = function(Value)
+        _G.RebirthToggle = Value
+        
+        if Value then
+            task.spawn(function()
+                local events = game:GetService("ReplicatedStorage"):WaitForChild("Events", 5)
+                local rebirthFunc = events and events:WaitForChild("Rebirth", 5)
+                
+                while _G.RebirthToggle do
+                    if rebirthFunc and rebirthFunc:IsA("RemoteFunction") then
+                        -- pcall prevents the entire script from breaking if you don't have enough stats to rebirth
+                        pcall(function()
+                            rebirthFunc:InvokeServer()
+                        end)
+                    else
+                        warn("Rebirth RemoteFunction path not found!")
+                        break
+                    end
+                    task.wait(1) -- Kept at 1 second since Rebirth validation takes longer on the server
+                end
+            end)
+        end
+    end
+})
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local events = ReplicatedStorage:WaitForChild("Events")
+
+-- Add the toggle to your existing tab variable (e.g., your tab name here instead of Tabs.Main)
+local Toggle = MainTab:AddToggle("AutoFarmToggle", {
+    Title = "Fast Farming", 
+    Default = false 
+})
+
+Toggle:OnChanged(function(Value)
+    if Value then
+        task.spawn(function()
+            -- Access the toggle directly via the callback variable 'Value'
+            while Toggle.Value do
+                pcall(function()
+                    events:WaitForChild("Farm"):FireServer()
+                    events:WaitForChild("Energy"):FireServer()
+                    events:WaitForChild("Rebirth"):InvokeServer()
+                end)
+                task.wait(0.1)
+            end
+        end)
+    end
+end)
+
+local MiscTab = Window:AddTab({ Title = "Misc", Icon = "settings" })
+
+-- Services & Local Player Variables
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+-- Feature States
+_G.InfJump = false
+_G.FlyToggle = false
+_G.Noclip = false
+_G.LockPos = false
+
+local lockedCFrame = nil
+local flySpeed = 50
+local flyConnection
+
+-- 1. Infinite Jump
+MiscTab:AddToggle("InfJump", {
+    Title = "Infinite Jump",
+    Default = false,
+    Callback = function(Value) _G.InfJump = Value end
+})
+UserInputService.JumpRequest:Connect(function()
+    if _G.InfJump and LocalPlayer.Character then
+        local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid then humanoid:ChangeState(Enum.HumanoidStateType.Jumping) end
+    end
+end)
+
+-- 2. Fly (WASD to steer, Space to go up, Left Shift to go down)
+MiscTab:AddToggle("Fly", {
+    Title = "Fly Menu",
+    Default = false,
+    Callback = function(Value)
+        _G.FlyToggle = Value
+        if flyConnection then flyConnection:Disconnect() end
+        
+        if Value then
+            flyConnection = RunService.Heartbeat:Connect(function()
+                if not _G.FlyToggle or not LocalPlayer.Character then return end
+                local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+                if not hrp or not humanoid then return end
+                
+                humanoid.PlatformStand = true
+                local moveDir = humanoid.MoveDirection
+                local velocity = moveDir * flySpeed
+                
+                if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+                    velocity = velocity + Vector3.new(0, flySpeed, 0)
+                elseif UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+                    velocity = velocity + Vector3.new(0, -flySpeed, 0)
+                end
+                
+                hrp.Velocity = velocity
+            end)
+        else
+            if LocalPlayer.Character then
+                local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+                if humanoid then humanoid.PlatformStand = false end
+            end
+        end
+    end
+})
+
+-- 3. Noclip
+MiscTab:AddToggle("Noclip", {
+    Title = "Noclip",
+    Default = false,
+    Callback = function(Value) _G.Noclip = Value end
+})
+RunService.Stepped:Connect(function()
+    if _G.Noclip and LocalPlayer.Character then
+        for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+            if part:IsA("BasePart") then part.CanCollide = false end
+        end
+    end
+end)
+
+-- 4. Position Lock
+MiscTab:AddToggle("LockPos", {
+    Title = "Lock Position",
+    Default = false,
+    Callback = function(Value)
+        _G.LockPos = Value
+        if Value and LocalPlayer.Character then
+            local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if hrp then lockedCFrame = hrp.CFrame end
+        else
+            lockedCFrame = nil
+        end
+    end
+})
+RunService.Heartbeat:Connect(function()
+    if _G.LockPos and lockedCFrame and LocalPlayer.Character then
+        local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if hrp then hrp.CFrame = lockedCFrame; hrp.Velocity = Vector3.zero end
+    end
+end)
+
+-- 5. Click TP (Hold Left Control + Left Click to Teleport)
+local clickTpToggle = false
+MiscTab:AddToggle("ClickTP", {
+    Title = "Click TP (Ctrl + Click)",
+    Default = false,
+    Callback = function(Value) clickTpToggle = Value end
+})
+UserInputService.InputBegan:Connect(function(input, processed)
+    if processed or not clickTpToggle then return end
+    if input.UserInputType == Enum.UserInputType.MouseButton1 and UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
+        local mouse = LocalPlayer:GetMouse()
+        if mouse and mouse.Target and LocalPlayer.Character then
+            local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if hrp then hrp.CFrame = CFrame.new(mouse.Hit.Position + Vector3.new(0, 3, 0)) end
+        end
+    end
+end)
+
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+
+-- Setup ScreenGui Container
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "FluentMobileButton"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+if gethui then
+    ScreenGui.Parent = gethui()
+elseif syn and syn.protect_gui then
+    syn.protect_gui(ScreenGui)
+    ScreenGui.Parent = game:GetService("CoreGui")
+else
+    ScreenGui.Parent = game:GetService("CoreGui")
+end
+
+-- Touch Button Base Frame
+local TouchButton = Instance.new("TextButton")
+TouchButton.Name = "TouchButton"
+TouchButton.Size = UDim2.fromOffset(55, 55)
+TouchButton.Position = UDim2.new(0, 15, 0.4, 0) -- Left side position ideal for mobile thumbs
+TouchButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+TouchButton.BackgroundTransparency = 0.2 -- Slightly transparent to see through on mobile screens
+TouchButton.Text = ""
+TouchButton.AutoButtonColor = false
+TouchButton.Parent = ScreenGui
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 14) -- Smooth circular style corner
+UICorner.Parent = TouchButton
+
+local UIStroke = Instance.new("UIStroke")
+UIStroke.Color = Color3.fromRGB(255, 255, 255)
+UIStroke.Transparency = 0.7
+UIStroke.Thickness = 1.5
+UIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+UIStroke.Parent = TouchButton
+
+local Icon = Instance.new("ImageLabel")
+Icon.Name = "Icon"
+Icon.Size = UDim2.fromOffset(60, 60)
+Icon.Position = UDim2.fromScale(0.5, 0.5)
+Icon.AnchorPoint = Vector2.new(0.5, 0.5)
+Icon.BackgroundTransparency = 1
+Icon.Image = "rbxassetid://132883476189129" -- Settings menu icon
+Icon.ImageColor3 = Color3.fromRGB(255, 255, 255)
+Icon.Parent = TouchButton
+
+-- Touch Dragging Logic
+local dragging, dragInput, dragStart, startPos
+local dragSpeed = 0.05 -- Faster tween response for mobile touch feedback
+
+local function update(input)
+    local delta = input.Position - dragStart
+    local targetPos = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    TweenService:Create(TouchButton, TweenInfo.new(dragSpeed, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = targetPos}):Play()
+end
+
+TouchButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = TouchButton.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+TouchButton.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        update(input)
+    end
+end)
+
+-- Tap Trigger Event (Fires Fluent Menu Hotkey)
+local dragThreshold = 10 -- Higher threshold for touch variance to prevent accidental drag cancels
+TouchButton.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+        if dragStart then
+            local endPos = input.Position
+            local distance = (Vector2.new(endPos.X, endPos.Y) - Vector2.new(dragStart.X, dragStart.Y)).Magnitude
+            
+            if distance < dragThreshold then
+                -- Visual press feedback
+                TweenService:Create(TouchButton, TweenInfo.new(0.1), {BackgroundTransparency = 0.5}):Play()
+                
+                -- Triggers LeftControl Keybind for the Library
+                VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.LeftControl, false, game)
+                task.wait(0.02)
+                VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.LeftControl, false, game)
+                
+                task.wait(0.08)
+                TweenService:Create(TouchButton, TweenInfo.new(0.1), {BackgroundTransparency = 0.2}):Play()
+            end
+        end
+    end
+end)
