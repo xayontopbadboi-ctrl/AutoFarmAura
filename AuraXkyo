@@ -456,7 +456,7 @@ task.spawn(function()
     end
 end)
 
-local Tab = Window:AddTab({ Title = "Credits", Icon = "lucide-box" })
+local Tab = Window:AddTab({ Title = "Credits", Icon = "info" })
 
 -- 4. Add your credit details using paragraphs
 Tabs.Credits:AddParagraph({
