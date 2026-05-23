@@ -746,3 +746,19 @@ FloatingButtonManager:AddButton("OpenUiBtn", mainBtn, false, false)
 
 Fluent:Notify({Title="BetterFluent", Content="Loaded successfully!", Type="Success", Duration=4})
 Window:SelectTab(1)
+
+-- 1. Create a dedicated Credits tab
+local Tabs = {
+    Credits = Window:AddTab({ Title = "Credits", Icon = "info" })
+}
+
+-- 2. Add credit details using paragraphs
+Tabs.Credits:AddParagraph({
+    Title = "Kyo-Private💋",
+    Content = "AuraFarming💋"
+})
+
+Tabs.Credits:AddParagraph({
+    Title = "Special Thanks",
+    Content = "Shoutout to pekan dogee"
+})
