@@ -456,24 +456,6 @@ task.spawn(function()
     end
 end)
 
-local Tab = Window:AddTab({ Title = "Credits", Icon = "info" })
-
--- 4. Add your credit details using paragraphs
-Tabs.Credits:AddParagraph({
-    Title = "Kyo-Private💋",
-    Content = ""
-})
-
-Tabs.Credits:AddParagraph({
-    Title = "AuraFarming🔥",
-    Content = ""
-})
-
-Tabs.Credits:AddParagraph({
-    Title = "Special Thanks",
-    Content = "🐶Shoutout to pekan dogee🐶"
-})
-
 local function CreateButton(ButtonName, Name, Size1, Size2, ScriptLogic, CircleMode)
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = ButtonName
