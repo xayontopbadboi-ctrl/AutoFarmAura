@@ -1,7 +1,7 @@
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 
 local Window = Fluent:CreateWindow({
-    Title = "Tantado! private only " .. Fluent.Version,
+    Title = "Kyo-Privates💋🔥" .. Fluent.Version,
     SubTitle = "by Kyo",
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 460),
@@ -461,12 +461,12 @@ local Tab = Window:AddTab({ Title = "Credits", Icon = "info" })
 -- 4. Add your credit details using paragraphs
 Tabs.Credits:AddParagraph({
     Title = "Kyo-Private💋",
-    Content = ""
+    Content = "Tantado"
 })
 
 Tabs.Credits:AddParagraph({
     Title = "AuraFarming🔥",
-    Content = ""
+    Content = "ulol"
 })
 
 Tabs.Credits:AddParagraph({
