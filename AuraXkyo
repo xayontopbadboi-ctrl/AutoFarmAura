@@ -764,35 +764,3 @@ Tabs.Credits:AddParagraph({
     Title = "Special Thanks",
     Content = "🐶Shoutout to pekan dogee🐶"
 })
-
--- 5. Select the tab so it shows up immediately
-Window:SelectTab(1)
-
-        end
-    end
-})
-
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local events = ReplicatedStorage:WaitForChild("Events")
-
--- Add the toggle to your existing tab variable (e.g., your tab name here instead of Tabs.Main)
-local Toggle = MainTab:AddToggle("AutoFarmToggle", {
-    Title = "Fast Farming", 
-    Default = false 
-})
-
-Toggle:OnChanged(function(Value)
-    if Value then
-        task.spawn(function()
-            -- Access the toggle directly via the callback variable 'Value'
-            while Toggle.Value do
-                pcall(function()
-                    events:WaitForChild("Farm"):FireServer()
-                    events:WaitForChild("Energy"):FireServer()
-                    events:WaitForChild("Rebirth"):InvokeServer()
-                end)
-                task.wait(0.1)
-            end
-        end)
-    end
-end)
