@@ -523,7 +523,7 @@ ButtonImage.Parent = CustomButton
 
 -- FIXED IMAGE INNER SIZE:
 -- Fills up 65% (0.65) of your background space beautifully. Increase to 0.85 if you want it larger!
-ButtonImage.Size = UDim2.new(0.90, 0, 0.90, 0)   
+ButtonImage.Size = UDim2.new(0.99, 0, 0.99, 0)   
 -- =======================================================
 
 -- 5. Smooth Dragging Implementation
