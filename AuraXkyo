@@ -456,20 +456,21 @@ task.spawn(function()
     end
 end)
 
+-- 1. Create the tab correctly using the variable "Tab"
 local Tab = Window:AddTab({ Title = "Credits", Icon = "info" })
 
--- 4. Add your credit details using paragraphs
-Tabs.Credits:AddParagraph({
+-- 2. Add your credit details using the correct "Tab" variable
+Tab:AddParagraph({
     Title = "Kyo-Private💋",
     Content = "Tantado"
 })
 
-Tabs.Credits:AddParagraph({
+Tab:AddParagraph({
     Title = "AuraFarming🔥",
     Content = "ulol"
 })
 
-Tabs.Credits:AddParagraph({
+Tab:AddParagraph({
     Title = "Special Thanks",
     Content = "🐶Shoutout to pekan dogee🐶"
 })
