@@ -503,7 +503,7 @@ CustomButton.Parent = ScreenGui
 -- CONFIGURATION BLOCK: Adjust dimensions here
 -- =======================================================
 CustomButton.Size = UDim2.new(0, 70, 0, 70)       -- Size of the clickable button frame
-CustomButton.Position = UDim2.new(0, 25, 0, 150)  -- Initial starting location on screen
+CustomButton.Position = UDim2.new(0, 25, 0, 25)  -- Initial starting location on screen
 
 local UICorner = Instance.new("UICorner")
 UICorner.CornerRadius = UDim.new(0, 15)           -- Corner rounding profile
@@ -522,7 +522,7 @@ ButtonImage.Parent = CustomButton
 -- ADJUST IMAGE INNER SIZE HERE:
 -- 0.65 means the image fills 65% of the total button width and height (adds padding)
 -- Change to UDim2.new(0, 40, 0, 40) if you prefer static pixel size tracking instead
-ButtonImage.Size = UDim2.new(0.65, 0, 0.65, 0)   
+ButtonImage.Size = UDim2.new(0.100, 0, 0.100, 0)   
 -- =======================================================
 
 -- 5. Smooth Dragging Implementation
