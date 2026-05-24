@@ -515,14 +515,15 @@ ButtonImage.Name = "Icon"
 ButtonImage.BackgroundTransparency = 1
 ButtonImage.Image = "rbxassetid://93762028825981"     -- Change your Asset ID here
 ButtonImage.ImageColor3 = Color3.fromRGB(255, 255, 255)
-ButtonImage.AnchorPoint = Vector2.new(0.5, 0.5)   -- Standard center alignment anchor
-ButtonImage.Position = UDim2.new(0.5, 0.5, 0.5, 0.5) -- Centers inside the parent button frame
+
+-- FIXED CENTER POSITION: Removed the trailing 0.5 pixel offsets that broke alignment
+ButtonImage.AnchorPoint = Vector2.new(0.5, 0.5)   
+ButtonImage.Position = UDim2.new(0.5, 0, 0.5, 0) 
 ButtonImage.Parent = CustomButton
 
--- ADJUST IMAGE INNER SIZE HERE:
--- 0.65 means the image fills 65% of the total button width and height (adds padding)
--- Change to UDim2.new(0, 40, 0, 40) if you prefer static pixel size tracking instead
-ButtonImage.Size = UDim2.new(0.100, 0, 0.100, 0)   
+-- FIXED IMAGE INNER SIZE:
+-- Fills up 65% (0.65) of your background space beautifully. Increase to 0.85 if you want it larger!
+ButtonImage.Size = UDim2.new(0.85, 0, 0.85, 0)   
 -- =======================================================
 
 -- 5. Smooth Dragging Implementation
