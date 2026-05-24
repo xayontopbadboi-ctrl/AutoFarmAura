@@ -475,6 +475,7 @@ Tab:AddParagraph({
     Content = "🐶Shoutout to pekan dogee🐶"
 })
 
+
 local function CreateButton(ButtonName, Name, Size1, Size2, ScriptLogic, CircleMode)
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = ButtonName
@@ -581,6 +582,26 @@ local function CreateButton(ButtonName, Name, Size1, Size2, ScriptLogic, CircleM
         end
     end)
 
+    button.InputBegan:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+            holding = true; holdStart = tick()
+        end
+    end)
+    button.InputEnded:Connect(function(i)
+        if holding and (i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch) then
+            holding = false
+            if tick() - holdStart >= 0.6 then toggle.Visible = true; hideAt = tick() end
+        end
+    end)
+    toggle.MouseButton1Click:Connect(function()
+        hideAt = tick()
+        applyShape(not frame:GetAttribute("IsCircle"))
+    end)
+    button.Activated:Connect(function()
+        if ScriptLogic then ScriptLogic(button) end
+    end)
+
+    FloatingButtonManager:AddButton(ButtonName, frame, false)
 
     local function MakeDraggable(topbarobject, object, locked)
         local Dragging, DragInput, DragStart, StartPosition = false, nil, nil, nil
@@ -596,3 +617,56 @@ local function CreateButton(ButtonName, Name, Size1, Size2, ScriptLogic, CircleM
             object:SetAttribute("Locked", newState)
             Fluent:Notify({ Title = newState and "Button Locked" or "Button Unlocked", Content = newState and "Locked in place." or "Can now be moved.", Duration = 2 })
         end
+        topbarobject.InputBegan:Connect(function(input)
+            if input.UserInputType ~= Enum.UserInputType.MouseButton1 and input.UserInputType ~= Enum.UserInputType.Touch then return end
+            Dragging = not object:GetAttribute("Locked"); Holding = true; DragStart = input.Position; StartPosition = object.Position
+            HoldToken += 1; local token = HoldToken
+            task.delay(HoldTime, function() if Holding and token == HoldToken then ToggleLock() end end)
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then Dragging = false; Holding = false end
+            end)
+        end)
+        topbarobject.InputChanged:Connect(function(input)
+            if not DragStart then return end
+            if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+                if (input.Position - DragStart).Magnitude > MoveCancelThreshold then Holding = false end
+                DragInput = input
+            end
+        end)
+        UserInputService.InputChanged:Connect(function(input) if input == DragInput and Dragging then Update(input) end end)
+    end
+    MakeDraggable(button, frame, false)
+
+    return button
+end
+
+
+local toggleGui = Instance.new("ScreenGui")
+toggleGui.Name = "OpenUi"
+toggleGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+toggleGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+toggleGui.ResetOnSpawn = false
+
+local mainBtn = Instance.new("TextButton")
+mainBtn.Name = "OpenButton"
+mainBtn.Parent = toggleGui
+mainBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+mainBtn.BackgroundTransparency = 1
+mainBtn.Position = UDim2.new(0.101969875, 0, 0.110441767, 0)
+mainBtn.Size = UDim2.new(0, 64, 0, 42)
+mainBtn.Text = ""
+mainBtn.Visible = true
+Instance.new("UICorner", mainBtn)
+
+local SizeBackMulti = 0.3
+
+local backgroundImage = Instance.new("ImageLabel")
+backgroundImage.Name = "RotatingBackground"
+backgroundImage.Parent = mainBtn
+backgroundImage.Size = UDim2.new(1.5 + SizeBackMulti, 0, 1.5 + SizeBackMulti, 0)
+backgroundImage.Position = UDim2.new(0.5, 0, 0.5, 0)
+backgroundImage.AnchorPoint = Vector2.new(0.5, 0.5)
+backgroundImage.BackgroundTransparency = 1
+backgroundImage.Image = "rbxassetid://92062295706713"
+backgroundImage.SizeConstraint = Enum.SizeConstraint.RelativeXX
+backgroundImage.ZIndex = 0
