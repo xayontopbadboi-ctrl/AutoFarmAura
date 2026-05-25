@@ -475,7 +475,6 @@ Tab:AddParagraph({
     Content = "🐶Shoutout to pekan dogee🐶"
 })
 
-local function CreateButton(ButtonName, Name, Size1, Size2, ScriptLogic, CircleMode)
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = ButtonName
     screenGui.Parent = LocalPlayer.PlayerGui
